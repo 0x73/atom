@@ -160,7 +160,7 @@ TextEditorComponent = React.createClass
     Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
 
   shouldRenderGutter: ->
-    not @props.mini and @state.showLineNumbers
+    not @props.mini and @props.editor.isGutterVisible() and atom.config.get('editor.showLineNumbers')
 
   getInitialState: -> {}
 
@@ -463,7 +463,8 @@ TextEditorComponent = React.createClass
     scopeDescriptor = editor.getRootScopeDescriptor()
 
     subscriptions.add atom.config.observe 'editor.showIndentGuide', scope: scopeDescriptor, @setShowIndentGuide
-    subscriptions.add atom.config.observe 'editor.showLineNumbers', scope: scopeDescriptor, @setShowLineNumbers
+    subscriptions.add atom.config.onDidChange 'editor.showLineNumbers', scope: scopeDescriptor, @requestUpdate
+    subscriptions.add editor.onDidChangeGutterVisible @requestUpdate
     subscriptions.add atom.config.observe 'editor.scrollSensitivity', scope: scopeDescriptor, @setScrollSensitivity
 
   focused: ->
@@ -1010,8 +1011,8 @@ TextEditorComponent = React.createClass
   setShowInvisibles: (showInvisibles) ->
     atom.config.set('editor.showInvisibles', showInvisibles)
 
-  setShowLineNumbers: (showLineNumbers) ->
-    @setState({showLineNumbers})
+  updateGutterVisibility: ->
+    @setState(showLineNumbers: @shouldRenderGutter())
 
   setScrollSensitivity: (scrollSensitivity) ->
     if scrollSensitivity = parseInt(scrollSensitivity)
